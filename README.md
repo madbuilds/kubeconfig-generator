@@ -4,7 +4,7 @@ Script which helps automate generation of a Kubeconfig file, based on current `k
 ## usage
 to use this script, pass in namespace and secret names as arguments.
 ```ssh
-./kubeconfig-generator.sh <namespace> <secret>
+./generate_kubeconfig.sh <namespace> <secret>
 ```
 
 ## requirements
