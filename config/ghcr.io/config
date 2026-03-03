@@ -1,0 +1,2 @@
+kubectl -n apps-dev create docker-registry {SECRET_NAME} --docker-server=ghcr.io --docker-username={USER_NAME} --docker-password='{TOKEN}'
+kubectl -n apps-dev patch serviceaccount {SERVICE_ACCOUNT_NAME} -p '{"imagePullSecrets": [{"name": "{SECRET_NAME}"}]}'
