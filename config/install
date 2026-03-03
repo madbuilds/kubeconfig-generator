@@ -1,0 +1,48 @@
+--- CLEANUP debian
+sudo systemctl disable --now apt-daily.service apt-daily-upgrade.service
+sudo systemctl disable --now man-db.service
+sudo systemctl disable --now e2scrub_reap.service
+sudo systemctl disable --now motd-news.service
+sudo systemctl disable --now cron.service
+sudo systemctl disable --now rsyslog.service
+sudo systemctl disable --now systemd-timesyncd.service
+sudo systemctl disable --now systemd-resolved.service
+sudo systemctl disable --now systemd-udevd.service
+sudo systemctl disable --now apt-daily.timer
+sudo systemctl disable --now apt-daily-upgrade.timer
+sudo mkdir -p /etc/systemd/journald.conf.d
+echo -e "[Journal]\nStorage=volatile" | sudo tee /etc/systemd/journald.conf.d/volatile.conf
+sudo systemctl restart systemd-journald
+sudo apt purge man-db manpages
+sudo apt purge info
+sudo apt purge tasksel
+sudo apt purge rsyslog
+sudo apt purge cron
+sudo apt purge logrotate
+sudo apt autoremove --purge
+sudo rm -rf /usr/share/doc/*
+sudo rm -rf /usr/share/man/*
+sudo rm -rf /usr/share/info/*
+
+
+--- INSTALL k3s (no traefik)
+curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" sh -s - server --disable traefik
+
+--- INSTALL ingress-nginx
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.14.1/deploy/static/provider/baremetal/deploy.yaml
+kubectl -n ingress-nginx patch svc ingress-nginx-controller -p '{"spec":{"type":"LoadBalancer"}}'
+kubectl -n ingress-nginx get svc ingress-nginx-controller -o wide
+kubectl label service ingress-nginx-controller expose=lan -n ingress-nginx
+
+--- INSTALL cert-manager
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.2/cert-manager.yaml
+
+--- HTTP-01 challange
+kubectl apply -f http01.yml
+
+
+======================================================================================
+              FOR WSL --- to pass ports through  WSL <---> WINDOWS
+======================================================================================
+--- EXECUTE port bypass script
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\admin\vms\scripts\ports.ps1"
