@@ -33,6 +33,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/cont
 kubectl -n ingress-nginx patch svc ingress-nginx-controller -p '{"spec":{"type":"LoadBalancer"}}'
 kubectl -n ingress-nginx get svc ingress-nginx-controller -o wide
 kubectl label service ingress-nginx-controller expose=lan -n ingress-nginx
+kubectl patch ingressclass nginx --type=merge -p '{"metadata":{"annotations":{"ingressclass.kubernetes.io/is-default-class":"true"}}}'
 
 --- INSTALL cert-manager
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.2/cert-manager.yaml
