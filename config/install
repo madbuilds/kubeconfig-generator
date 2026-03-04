@@ -41,6 +41,8 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 --- HTTP-01 challange
 kubectl apply -f http01.yml
 
+--- set host name policy
+kubectl apply -f ingress-host-policy.yml
 
 ======================================================================================
               FOR WSL --- to pass ports through  WSL <---> WINDOWS
