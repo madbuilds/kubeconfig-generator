@@ -1,0 +1,42 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: ingress-host-by-namespace
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["networking.k8s.io"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["ingresses"]
+  validations:
+    - expression: >
+        !has(object.spec.rules) ||
+        object.spec.rules.all(r,
+          !has(r.host) ||
+          (
+            request.namespace == "apps-dev"
+              ? r.host.matches("^[a-zA-Z0-9-]+\\.dev\\.k3s\\.devim\\.keenetic\\.pro$")
+              : request.namespace == "apps-prod"
+                ? (
+                    r.host.matches("^[a-zA-Z0-9-]+\\.k3s\\.devim\\.keenetic\\.pro$")
+                    && !r.host.matches("^dev\\.k3s\\.devim\\.keenetic\\.pro$")
+                  )
+                : true
+          )
+        )
+      message: >-
+        Ingress host is invalid for this namespace:\n
+        apps-dev  requires: *.dev.k3s.devim.keenetic.pro (dev prefix)\n
+        apps-prod requires:     *.k3s.devim.keenetic.pro (no  prefix)
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: ingress-host-by-namespace
+spec:
+  policyName: ingress-host-by-namespace
+  validationActions: ["Deny"]
+  matchResources:
+    namespaceSelector: {}
